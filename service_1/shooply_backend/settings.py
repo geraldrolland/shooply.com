@@ -151,14 +151,12 @@ CELERY_TASK_QUEUES = (
 
 CELERY_TASK_DEFAULT_QUEUE = 'low_priority'
 CELERY_TASK_ROUTES = {
-    'justChatBackend.tasks.send_user_otp': {'queue': 'high_priority'},
-    'justChatBackend.tasks.medium_priority_task': {'queue': 'medium_priority'},
-    'justChatBackend.tasks.low_priority_task': {'queue': 'low_priority'},
+    'apps.tasks.send_events': {'queue': 'high_priority'},
 }
 
 #Configuration for celery with Redis broker
 
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+CELERY_BROKER_URL = 'redis://172.23.247.236:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
@@ -167,8 +165,9 @@ import os
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
-STATIC_URL = '/django_static/' 
+STATIC_URL = '/django_static/'
 STATIC_ROOT = BASE_DIR / 'django_static'
+ENCRYPTION_KEY="hMZL7zFbDHd6c2lA3HXOaC/fW3DW9zUrsQFqAE8GyIw="
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -182,6 +181,10 @@ CACHES = {
         }
     }
 }
+
+# kafka configuration
+KAFKA_BOOTSTRAP_SERVERS = '172.23.247.236:9092'
+KAFKA_TOPIC_NAME = 'email_event'
 
 """
 REST_FRAMEWORK = {

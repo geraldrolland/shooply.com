@@ -1,4 +1,6 @@
-
+from apps.TOPICS import TOPICS
+from apps.encrypt_data import encrypt_data
+from apps.producer import producer
 from django.shortcuts import redirect, get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -27,6 +29,10 @@ from .customerserializer import CustomerSerializer
 from .models import Customer
 from .pswd_validation_str import pswd_validation_str
 import re
+from apps.tasks import send_events
+
+
+
 @api_view(["POST"])
 def register(request):
     print(request.data.get("email"))
@@ -40,7 +46,21 @@ def register(request):
         elif request.data.get("confirm_password") != request.data.get("password"):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "password do not match"})
         else:
-            user = CustomerSerializer(data=request.data)
-            user.is_valid(raise_exception=True)
-            user.save()
-            return Response(status=status.HTTP_201_CREATED, data=user.data)
+            serializer = CustomerSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            user = Customer.objects.get(email=request.data.get("email"))
+            refresh = RefreshToken.for_user(user=user)
+            redirect_url = f"http://localhost:5500/verify-email?token={refresh.access_token}"
+            try:
+                send_events(
+                    event="email_verification",
+                    topic="email_event",
+                    data={
+                        "email": request.data.get("email"),
+                        "verification_link": redirect_url,
+                    }
+                )
+            except Exception as e:
+                return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"error": "Failed to send verification email"})
+            return Response(status=status.HTTP_201_CREATED, data=serializer.data)
