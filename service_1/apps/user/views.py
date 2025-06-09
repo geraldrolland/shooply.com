@@ -31,8 +31,7 @@ from .pswd_validation_str import pswd_validation_str
 import re
 from apps.tasks import send_events
 import jwt
-from email_validator import validate_email, EmailNotValidError
-
+from apps.validators import *
 
 
 @api_view(["POST"])
@@ -40,21 +39,13 @@ from email_validator import validate_email, EmailNotValidError
 @permission_classes([AllowAny])
 def register(request):
     try:
+        RegisterSchema(**request.data)
+    except Exception as e:
+        return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY, data={"error": str(e)})
+    try:
         Customer.objects.get(email=request.data.get("email"))
         return Response(status=status.HTTP_409_CONFLICT, data={"error": "a user with this email already exist"})
     except Customer.DoesNotExist:
-        try:
-            validate_email(request.data.get("email"))
-        except EmailNotValidError as e:
-            return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY, data={"error": str(e)})
-        if not re.fullmatch(pswd_validation_str, request.data.get("password")):
-            error_msg = "Passwords must be a minimum of 8 characters long, contain at least one uppercase letter, one number, and one special character."
-            return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY, data={"error": error_msg})
-        elif request.data.get("confirm_password") is None or request.data.get("confirm_password").strip() == "":
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "confirm password is required"})
-        elif request.data.get("confirm_password") != request.data.get("password"):
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "password do not match"})
-        else:
             serializer = CustomerSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
@@ -80,11 +71,12 @@ def register(request):
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @permission_classes([AllowAny])
 def verify_email(request):
-    token = request.data.get("token")
-    if not token:
-        return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "Token is required"})
     try:
-        user = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+        VerifyEmailSchema(**request.data)
+    except Exception as e:
+        return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY, data={"error": str(e)})
+    try:
+        user = jwt.decode(request.data.get("token"), settings.SECRET_KEY, algorithms=["HS256"])
         customer = get_object_or_404(Customer, id=user.get("user_id"))
         if customer.is_email_verified:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "Email already verified"})

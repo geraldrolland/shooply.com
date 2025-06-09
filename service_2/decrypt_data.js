@@ -2,10 +2,18 @@ const crypto = require('crypto');
 require('dotenv').config();
 const {TokenIntegrityError} = require("./errors");
 
-const decryptData = (encryptdData) => {
-  const key = Buffer.from(process.env.ENCRYPTION_KEY, "base64");
-  const token = Buffer.from(encryptdData.toString(), "base64");
 
+const decryptData = (encryptedData) => {
+  if (!encryptedData) {
+    throw new Error('Encrypted data is required');
+  }
+  
+  if (!process.env.ENCRYPTION_KEY) {
+    throw new Error('ENCRYPTION_KEY environment variable is required');
+  }
+
+  const key = Buffer.from(process.env.ENCRYPTION_KEY, "base64");
+  const token = Buffer.from(encryptedData.toString(), "base64");
   const version = token.slice(0, 1);  // Should be 0x80
   const timestamp = token.slice(1, 9);
   const iv = token.slice(9, 25);
@@ -26,4 +34,5 @@ const decryptData = (encryptdData) => {
 }
 
 
-module.exports = {decryptData}
+
+module.exports = {decryptData};

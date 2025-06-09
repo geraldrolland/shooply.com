@@ -35,11 +35,9 @@ class Customer(AbstractBaseUser, PermissionsMixin):
                             ])
         self.invite_code = code
         self.updated_at = datetime.now(timezone.utc)
-        self.save()
         return code
     
     def verify_email(self):
         self.is_email_verified = True
         self.updated_at = datetime.now(timezone.utc)
-        self.save()
 
