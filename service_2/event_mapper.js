@@ -2,7 +2,7 @@ const {emailVerificationHandler} = require("./event_handler")
 const email_event_mapper = (data) => {
     switch(data.event) {
         case "email_verification":
-            emailVerificationHandler(data);
+            emailVerificationHandler(data.data);
             break;
 
         default:

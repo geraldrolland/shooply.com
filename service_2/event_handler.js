@@ -16,14 +16,13 @@ const transport = nodemailer.createTransport({
     }
 })
 
-const emailVerificationHandler = (data) => {
-    
+const emailVerificationHandler = ({email, verification_link}) => {  
     const mail = {
         from: process.env.SENDER_EMAIL,
-        to: data.email,
+        to: email,
         replyTo: process.env.REPLY_TO,
         subject: "Email Verification",
-        html: emailVerificationTemplate(data.data),
+        html: emailVerificationTemplate(verification_link),
         priority: "high",
         date: new Date(),
     };
@@ -38,4 +37,4 @@ const emailVerificationHandler = (data) => {
 
 module.exports = {
     emailVerificationHandler,
-}
+};

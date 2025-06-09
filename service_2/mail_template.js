@@ -1,5 +1,4 @@
-const emailVerificationTemplate = (data) => {
-    const {verification_link} = data;
+const emailVerificationTemplate = (verification_link) => {
     return `<html lang="en">
 
 <head>
