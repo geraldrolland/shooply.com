@@ -23,6 +23,7 @@ async function runEmailConsumer() {
     autoCommit: true,
     eachMessage: async ({topic, message}) => {
       console.log(`THIS IS THE TOPIC: ${topic}`);
+      //console.log(`THIS IS THE MESSAGE: ${message.value}`);
       new Promise((resolve, reject) => {
         try {
           data = decryptData(message.value);
@@ -39,5 +40,11 @@ async function runEmailConsumer() {
     }
   });
 }
+
+process.on('SIGINT', async () => {
+  console.log('SIGINT received, disconnecting consumer...');
+  await consumer.disconnect();
+  process.exit(0);
+});
 
 module.exports = {runEmailConsumer};

@@ -1,4 +1,5 @@
 from rest_framework.serializers import ModelSerializer, CharField, BooleanField
+from datetime import datetime
 from .models import *
 
 class CustomerSerializer(ModelSerializer):
@@ -13,8 +14,10 @@ class CustomerSerializer(ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop("password")
+        print(password)
         user = Customer.objects.create(**validated_data)
         user.set_password(password)
+        user.save()
         return user
     
     def update(self, instance, validated_data):
@@ -24,6 +27,6 @@ class CustomerSerializer(ModelSerializer):
                 continue
             if value:
                 setattr(instance, key, value)
-        instance.updated_at = datetime.now()
+        instance.updated_at = datetime.now(timezone.utc)
         instance.save()
         return instance

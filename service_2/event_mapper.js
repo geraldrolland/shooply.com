@@ -4,7 +4,8 @@ const email_event_mapper = (data) => {
         case "email_verification":
             emailVerificationHandler(data.data);
             break;
-
+        case "password_reset":
+            break
         default:
             console.error("unknown event type");
     }

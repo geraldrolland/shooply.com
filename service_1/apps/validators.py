@@ -31,28 +31,64 @@ class RegisterSchema(BaseModel):
 class VerifyEmailSchema(BaseModel):
     token: str
 
-@root_validator(pre=True)
-def validate_body(cls, values):
-    if values.keys() != 1:
-        raise ValueError("incorrect number of field provided")
-    if "token" not in values:
-        raise ValueError("Missing required field: token")
-    return values
+    @root_validator(pre=True)
+    def validate_body(cls, values):
+        if len(values.keys()) != 1:
+            raise ValueError("incorrect number of field provided")
+        if "token" not in values:
+            raise ValueError("Missing required field: token")
+        return values
 
 class LoginSchema(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8)
 
 
-@root_validator(pre=True)
-def validate_body(cls, values):
-    if values.keys() != 2:
-        raise ValueError("incorrect number of field provided")
-    elif "email" not in values or "password" not in values:
-        raise ValueError("Missing required fields: 'email', 'password' are required.")
+    @root_validator(pre=True)
+    def validate_body(cls, values):
+        if len(values.keys()) != 2:
+            raise ValueError("incorrect number of field provided")
+        elif "email" not in values or "password" not in values:
+            raise ValueError("Missing required fields: 'email', 'password' are required.")
+        return values
+
+    @validator("password")
+    def validate_password(cls, v):
+        if not re.fullmatch(pswd_validation_str, v):
+            raise ValueError("Passwords must be a minimum of 8 characters long, contain at least one uppercase letter, one number, and one special character.")
+        return v
     
-@validator("password")
-def validate_password(cls, v):
-    if not re.fullmatch(pswd_validation_str, v):
-        raise ValueError("Passwords must be a minimum of 8 characters long, contain at least one uppercase letter, one number, and one special character.")
-    return v
+class EmailSchema(BaseModel):
+    email: EmailStr
+
+    @root_validator(pre=True)
+    def validate_body(self, values):
+        if len(values.keys()) != 1:
+            raise ValueError("incorrect number of field provided")
+        elif "email" not in values:
+            raise ValueError("incorrect field provided")
+        return values
+
+class PasswordResetSchema(BaseModel):
+    password: str = Field(..., min_length=8)
+    confirm_password: str = Field(..., min_length=8)
+
+    @root_validator(pre=True)
+    def validate_body(self, values):
+        if len(values.keys()) != 2:
+            raise ValueError("incorrect number of field provided")
+        elif "password" not in values or "confirm_password" not in values:
+            raise ValueError("incorrect field provided")
+        return values
+
+    @validator("password")
+    def password_complexity(cls, v):
+        if not re.fullmatch(pswd_validation_str, v):
+            raise ValueError("Passwords must be a minimum of 8 characters long, contain at least one uppercase letter, one number, and one special character.")
+        return v
+    
+    @validator("confirm_password")
+    def passwords_match(cls, v, values):
+        if 'password' in values and v != values['password']:
+            raise ValueError("Passwords do not match.")
+        return v

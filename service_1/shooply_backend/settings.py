@@ -114,14 +114,7 @@ USE_I18N = True
 
 USE_TZ = True
 
-# SMTP GMAIL CONFIGURATION
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 465 #587
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'geraldrolland123456@gmail.com'
-EMAIL_HOST_PASSWORD =  'gmbj vyce ixpn gyrn '
+
 
 
 # Static files (CSS, JavaScript, Images)
@@ -178,7 +171,7 @@ ENCRYPTION_KEY="hMZL7zFbDHd6c2lA3HXOaC/fW3DW9zUrsQFqAE8GyIw="
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/0',  # Adjust the IP and port if necessary
+        'LOCATION': 'redis://172.23.247.236/0',  # Adjust the IP and port if necessary
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
