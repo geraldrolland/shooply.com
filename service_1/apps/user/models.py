@@ -7,6 +7,7 @@ from datetime import timezone, datetime
 from .customusermanager import CustomerManager
 import uuid
 from random import choice
+from rest_framework.serializers import Serializer, CharField
 
 class Customer(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_("email address"), unique=True, db_index=True)
@@ -46,4 +47,10 @@ class Customer(AbstractBaseUser, PermissionsMixin):
     def assign_inviter(self, inviter):
         self.inviter = inviter
         self.save()
+
+
+class AuthSerializer(Serializer):
+    code = CharField(required=False)
+    error = CharField(required=False)
+    state = CharField(required=False)
 

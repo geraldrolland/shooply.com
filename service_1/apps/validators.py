@@ -62,7 +62,7 @@ class EmailSchema(BaseModel):
     email: EmailStr
 
     @root_validator(pre=True)
-    def validate_body(self, values):
+    def validate_body(cls, values):
         if len(values.keys()) != 1:
             raise ValueError("incorrect number of field provided")
         elif "email" not in values:
@@ -74,7 +74,7 @@ class PasswordResetSchema(BaseModel):
     confirm_password: str = Field(..., min_length=8)
 
     @root_validator(pre=True)
-    def validate_body(self, values):
+    def validate_body(cls, values):
         if len(values.keys()) != 2:
             raise ValueError("incorrect number of field provided")
         elif "password" not in values or "confirm_password" not in values:
