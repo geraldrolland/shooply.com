@@ -1,20 +1,13 @@
 from apps.TOPICS import TOPICS
-from apps.encrypt_data import encrypt_data
 from apps.producer import producer
 from django.shortcuts import redirect, get_object_or_404
-from rest_framework import viewsets, status
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from django_ratelimit.decorators import ratelimit
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.views.decorators.vary import vary_on_cookie
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from django.core.mail import send_mail
 from django.conf import settings
-from django.http import JsonResponse
-import requests
 from datetime import datetime
 from django.conf import settings
 from rest_framework.views import APIView
@@ -147,12 +140,13 @@ def email(request):
             event = "password_reset",
             topic = "email_event",
             data={
+                "email": request.data.get("email"),
                 "redirect_url": f"http://127.0.0.1:5173/user/reset-password?token={token}"
             } 
         )
     except Exception as e:
         return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"error": "Failed to send verification email"})
-    return Response(status=status.HTTP_200_OK, data={"mesaage": "verification link sent successfully"})
+    return Response(status=status.HTTP_200_OK, data={"message": "verification link sent successfully"})
 
 @api_view(["POST"])
 @authentication_classes([SessionAuthentication, BasicAuthentication])
@@ -178,7 +172,15 @@ def password_reset(request):
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @permission_classes([AllowAny])
 def google_auth(request):
-    state = unquote(request.query_params.get("state", "/"))
+    QUERY = {}
+    for key, val in request.query_params.items():
+        QUERY[key] = val
+    try:
+        print(QUERY)
+        GoogleAuthSchema(**QUERY)
+    except Exception as e:
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": str(e)})
+    state = unquote(request.query_params.get("state"))
     data = {"code": request.query_params.get("code", None), "error": request.query_params.get("error", None)}
     redirect_url = settings.BASE_APP_URL + state
     try:
@@ -196,7 +198,7 @@ def google_auth(request):
     return response
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @authentication_classes([SessionAuthentication, BasicAuthentication, UserAuthentication])
 @permission_classes([IsUserAuthenticated])
 def user_profile(request):
@@ -211,7 +213,7 @@ def user_profile(request):
 
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @authentication_classes([SessionAuthentication, BasicAuthentication, UserAuthentication])
 @permission_classes([IsUserAuthenticated])
 def logout(request):
@@ -220,7 +222,20 @@ def logout(request):
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "No refresh token provided in cookie"})
     token = RefreshToken(refresh_token)
     token.blacklist()
-    response = Response(status=status.HTTP_205_RESET_CONTENT, data={"message": "Logged out successfully"})
-    response.delete_cookie('access_token')
-    response.delete_cookie('refresh_token')
+    response = Response(status=status.HTTP_200_OK, data={"message": "Logged out successfully"})
+    response.cookies.clear()
     return response
+
+@api_view(["GET"])
+@authentication_classes([SessionAuthentication, BasicAuthentication, UserAuthentication])
+@permission_classes([IsUserAuthenticated])
+def invite_link(request):
+    user = request.user
+    if user.invite_code:
+        return Response(status=status.HTTP_200_OK, data={"invite_link": f"http://127.0.0.1:5173/user/register?invite_code={user.invite_code}"})
+    code = user.gen_invite_code()
+    return Response(status=status.HTTP_200_OK, data={"invite_link": f"http://127.0.0.1:5173/user/register?invite_code={code}"})
+
+
+
+

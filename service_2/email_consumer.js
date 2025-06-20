@@ -33,12 +33,12 @@ async function runEmailConsumer() {
         }
       }).then(data => {
         console.log("Decrypted data:", data);
-        email_event_mapper(data);
+        //email_event_mapper(data);
       }).catch(error => {
         console.error("Error decrypting message:", error);
       })
-    }
-  });
+     }
+   });
 }
 
 process.on('SIGINT', async () => {
@@ -46,5 +46,6 @@ process.on('SIGINT', async () => {
   await consumer.disconnect();
   process.exit(0);
 });
+
 
 module.exports = {runEmailConsumer};

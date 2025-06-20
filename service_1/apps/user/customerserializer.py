@@ -6,7 +6,6 @@ class CustomerSerializer(ModelSerializer):
     password = CharField(write_only=True)
     email = CharField(required=True, allow_blank=False)
     has_min_purchase = BooleanField(read_only=True, default=False)
-    invite_code = CharField(read_only=True, default=None, write_only=False)
     type = CharField(read_only=True, default="customer")   
     class Meta:
         model = Customer

@@ -92,3 +92,18 @@ class PasswordResetSchema(BaseModel):
         if 'password' in values and v != values['password']:
             raise ValueError("Passwords do not match.")
         return v
+    
+class GoogleAuthSchema(BaseModel):
+    state: str
+    code: str | None = None
+    error: str | None = None
+
+    @root_validator(pre=True)
+    def validate_body(cls, values):
+        if len(list(values.keys())) != 2:
+            raise ValueError("incorrect number of field provided")
+        elif list(values.keys())[0] not in ["state", "error", "code"] or list(values.keys())[1] not in ["state", "code", "error"]:
+            raise ValueError("incorrect field provided")
+        elif "state" not in list(values.keys()):
+            raise ValueError("state field not provided")
+        return values

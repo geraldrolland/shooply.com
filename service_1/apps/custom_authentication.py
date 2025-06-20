@@ -7,7 +7,6 @@ from django.conf import settings
 
 class UserAuthentication(BaseAuthentication):
     def authenticate(self, request):
-        print("THIS IS THE REQUEST", request)
         access_token = request._request.COOKIES.get('access_token')
         
         if not access_token:

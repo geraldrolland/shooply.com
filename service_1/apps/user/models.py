@@ -29,7 +29,7 @@ class Customer(AbstractBaseUser, PermissionsMixin):
     
     def gen_invite_code(self):
         code = ""
-        for i in range(0, 11):
+        for i in range(0, 16):
             code += choice(['0', '1', '2', '3',
                             '4', '5', '6', '7',
                             '8', '9'

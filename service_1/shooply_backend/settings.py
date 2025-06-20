@@ -209,7 +209,7 @@ SESSION_SAVE_EVERY_REQUEST = True  # Save the session on every request (keeps it
 from datetime import timedelta
 # JWT CONFIGURATION
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=7),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=3),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,

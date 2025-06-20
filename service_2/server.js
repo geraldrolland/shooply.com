@@ -21,6 +21,4 @@ runEmailConsumer().catch(err => {
 
 app.listen(process.env.PORT, async () => {
     console.log("server  started at http://localhost:3000/");
-    console.log('SMTP_USER:', process.env.SMTP_USER);
-    console.log('SMTP_PASSWORD:', process.env.SMTP_PASSWORD.length); 
 })
