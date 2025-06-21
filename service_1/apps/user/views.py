@@ -28,6 +28,20 @@ from apps.custom_permission import IsUserAuthenticated
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @permission_classes([AllowAny])
 def register(request):
+
+    """
+    Registers a new user by validating the request data, checking for existing users with the same email,
+    and creating a new customer record if the email is not already registered.
+    If an invite code is provided, it assigns the inviter to the new user.
+    Args:
+        request: The HTTP request object containing the user registration data.
+    Returns:
+        Response: A response indicating the success or failure of the registration process.
+    Raises:
+        Exception: If the request data is invalid, if a user with the same email already exists, or if there is an error sending the verification email.
+
+    """
+
     try:
         RegisterSchema(**request.data)
     except Exception as e:
@@ -72,6 +86,17 @@ def register(request):
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @permission_classes([AllowAny])
 def verify_email(request):
+
+    """
+    Verifies the user's email by checking the provided token and updating the user's email verification status.
+    Args:
+        request: The HTTP request object containing the token for email verification.
+    Returns:
+        Response: A response indicating the success or failure of the email verification process.
+    Raises:
+        Exception: If the token is invalid, expired, or if the email is already verified.
+    """
+
     try:
         VerifyEmailSchema(**request.data)
     except Exception as e:
@@ -94,6 +119,18 @@ def verify_email(request):
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @permission_classes([AllowAny])
 def login(request):
+    
+    """
+    Logs in a user by validating their credentials and returning an access token if successful.
+    Args:
+        request: The HTTP request object containing the user's email and password.
+    Returns:
+        Response: A response containing the user's ID and email if login is successful, or an error message if not.
+    Raises:
+        Exception: If the provided credentials are invalid or if the email is not verified.
+
+    """
+    
     try:
         LoginSchema(**request.data)
     except Exception as e:
@@ -128,6 +165,17 @@ def login(request):
 @api_view(["POST"])
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 def email(request):
+    
+    """
+    Sends a password reset verification link to the user's email.
+    Args:
+        request: The HTTP request object containing the user's email.
+    Returns:
+        Response: A response indicating the success or failure of sending the verification link.
+    Raises:
+        Exception: If the email is invalid or if sending the email fails.
+    """
+    
     try:
         EmailSchema(**request.data)
     except Exception as e:
@@ -151,6 +199,17 @@ def email(request):
 @api_view(["POST"])
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 def password_reset(request):
+    
+    """
+    Resets the password for a user based on the provided token and new password.
+    Args:
+        request: The HTTP request object containing the token and new password.
+    Returns:
+        Response: A response indicating the success or failure of the password reset operation.
+    Raises:
+        Exception: If the token is invalid or expired, or if the password reset fails.
+    """
+    
     email = cache.get(request.query_params.get("token"), None)
     if email:
         try:
@@ -172,6 +231,16 @@ def password_reset(request):
 @authentication_classes([SessionAuthentication, BasicAuthentication])
 @permission_classes([AllowAny])
 def google_auth(request):
+    
+    """Handles Google OAuth2 authentication by redirecting the user to Google's authorization page.
+    This function constructs the authorization URL with the necessary parameters and redirects the user to it.
+    Args:
+        request: The HTTP request object containing query parameters for the Google OAuth2 authentication.
+    Returns:
+        Response: A redirect response to the Google authorization URL.
+
+    """
+
     QUERY = {}
     for key, val in request.query_params.items():
         QUERY[key] = val
@@ -202,6 +271,16 @@ def google_auth(request):
 @authentication_classes([SessionAuthentication, BasicAuthentication, UserAuthentication])
 @permission_classes([IsUserAuthenticated])
 def user_profile(request):
+    
+    """
+    Retrieves the profile information of the authenticated user.
+    Args:
+        request: The HTTP request object containing the authenticated user.
+    Returns:
+        Response: A response containing the user's profile information, including ID and email.
+
+    """
+    
     data = {
         "id": request.user.id,
         "email": request.user.email
@@ -217,6 +296,15 @@ def user_profile(request):
 @authentication_classes([SessionAuthentication, BasicAuthentication, UserAuthentication])
 @permission_classes([IsUserAuthenticated])
 def logout(request):
+
+    """
+    Logs out the user by blacklisting the refresh token and clearing cookies.
+    Args:
+        request: The HTTP request object containing the refresh token in cookies.
+    Returns:
+        Response: A response indicating the logout status, with a 200 OK status if successful.
+    """
+
     refresh_token = request.COOKIES.get('refresh_token')
     if not refresh_token:
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "No refresh token provided in cookie"})
@@ -230,12 +318,19 @@ def logout(request):
 @authentication_classes([SessionAuthentication, BasicAuthentication, UserAuthentication])
 @permission_classes([IsUserAuthenticated])
 def invite_link(request):
+    
+    """
+    Generates an invite link for the authenticated user.
+    If the user already has an invite code, it returns the existing link.
+    If not, it generates a new invite code and returns the link.
+    Args:
+        request: The HTTP request object containing the authenticated user.
+    Returns:
+        Response: A response containing the invite link for the user, with a 200 OK status.
+    """
+    
     user = request.user
     if user.invite_code:
         return Response(status=status.HTTP_200_OK, data={"invite_link": f"http://127.0.0.1:5173/user/register?invite_code={user.invite_code}"})
     code = user.gen_invite_code()
     return Response(status=status.HTTP_200_OK, data={"invite_link": f"http://127.0.0.1:5173/user/register?invite_code={code}"})
-
-
-
-
